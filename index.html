@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MBG Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <div class="logo">🍱 <span>MBG Tracker</span></div>
+      <div id="tanggal" class="tanggal"></div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- MENU HARIAN -->
+    <section class="card">
+      <h2>🥗 Menu Hari Ini</h2>
+      <div id="menuGrid" class="menu-grid"></div>
+    </section>
+
+    <!-- FORM CHECKLIST -->
+    <section class="card">
+      <h2>📋 Checklist MBG</h2>
+
+      <label class="label" for="kelas">Pilih Kelas</label>
+      <select id="kelas" class="select">
+        <option value="" disabled selected>-- Pilih Kelas --</option>
+        <option>X RPL 1</option>
+        <option>X RPL 2</option>
+        <option>X RPL 3</option>
+        <option>X RPL 4</option>
+        <option>X RPL 5</option>
+      </select>
+
+      <div class="btn-group">
+        <button id="btnAmbil" class="btn btn-ambil" onclick="kirim('Mengambil')">
+          🍽️ Sudah Mengambil
+        </button>
+        <button id="btnKembali" class="btn btn-kembali" onclick="kirim('Mengembalikan')">
+          🔄 Sudah Mengembalikan
+        </button>
+      </div>
+    </section>
+
+    <!-- LOG SESI -->
+    <section class="card">
+      <div class="log-header">
+        <h2>📊 Riwayat Sesi</h2>
+        <button class="btn-hapus" onclick="hapusLog()">Hapus</button>
+      </div>
+      <ul id="logList"><li class="kosong">Belum ada aktivitas.</li></ul>
+    </section>
+
+  </main>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
