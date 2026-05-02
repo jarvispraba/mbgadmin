@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MBG Tracker – Guru</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+</head>
+
+<body>
+
+  <!-- ===================== HALAMAN LOGIN ===================== -->
+  <div id="pageLogin" class="page active">
+    <div class="login-wrap">
+      <div class="login-logo">🍱</div>
+      <h1 class="login-title">MBG Tracker</h1>
+      <p class="login-sub">Portal Guru – Masuk dengan email sekolah</p>
+
+      <div class="login-card">
+        <label class="label" for="inputEmail">Email Guru</label>
+        <input
+          type="email"
+          id="inputEmail"
+          class="input"
+          placeholder="nama@sekolah.sch.id"
+          autocomplete="email"
+        />
+        <button class="btn btn-ambil" id="btnLogin" onclick="doLogin()">
+          🔐 Masuk
+        </button>
+        <p id="loginMsg" class="login-msg"></p>
+      </div>
+
+      <p class="login-note">Hanya guru yang terdaftar yang dapat mengakses sistem ini.</p>
+    </div>
+  </div>
+
+  <!-- ==================== HALAMAN DASHBOARD ================== -->
+  <div id="pageDashboard" class="page">
+
+    <!-- HEADER -->
+    <header>
+      <div class="header-inner">
+        <div class="logo">🍱 <span>MBG Tracker</span></div>
+        <div class="header-right">
+          <div id="tanggal" class="tanggal"></div>
+          <button class="btn-logout" onclick="doLogout()" title="Keluar">⏏ Keluar</button>
+        </div>
+      </div>
+      <div class="header-guru">
+        <span id="labelGuru">👤 —</span>
+      </div>
+    </header>
+
+    <main>
+
+      <!-- GAMBAR HARI INI -->
+      <section class="card">
+        <h2>🖼️ Gambar Menu / Informasi</h2>
+
+        <div id="imgPreviewWrap" class="img-preview-wrap hidden">
+          <img id="imgPreview" class="img-preview" src="" alt="Gambar menu" />
+          <button class="btn-img-hapus" onclick="hapusGambar()" title="Hapus gambar">✕ Hapus Gambar</button>
+        </div>
+
+        <div id="imgPlaceholder" class="img-placeholder">
+          <span>📷</span>
+          <p>Belum ada gambar</p>
+        </div>
+
+        <label class="btn btn-kembali btn-upload" for="inputGambar">
+          📤 Upload Gambar
+        </label>
+        <input type="file" id="inputGambar" accept="image/*" style="display:none" onchange="uploadGambar(event)" />
+      </section>
+
+      <!-- FORM CHECKLIST -->
+      <section class="card">
+        <h2>📋 Checklist MBG</h2>
+
+        <label class="label" for="kelas">Pilih Kelas</label>
+        <select id="kelas" class="select">
+          <option value="" disabled selected>-- Pilih Kelas --</option>
+          <option>X RPL 1</option>
+          <option>X RPL 2</option>
+          <option>X RPL 3</option>
+          <option>X RPL 4</option>
+          <option>X RPL 5</option>
+        </select>
+
+        <div class="piring-info" id="piringInfo" style="display:none">
+          🍽️ Jumlah piring: <strong>34</strong>
+        </div>
+
+        <div class="btn-group">
+          <button id="btnAmbil" class="btn btn-ambil" onclick="kirim('Mengambil')">
+            🍽️ Sudah Mengambil
+          </button>
+          <button id="btnKembali" class="btn btn-kembali" onclick="kirim('Mengembalikan')">
+            🔄 Sudah Mengembalikan
+          </button>
+        </div>
+      </section>
+
+      <!-- LOG SESI -->
+      <section class="card">
+        <div class="log-header">
+          <h2>📊 Riwayat Sesi</h2>
+          <div class="log-actions">
+            <button class="btn-hapus btn-hapus-kelas" onclick="showHapusKelas()">Hapus Kelas</button>
+            <button class="btn-hapus" onclick="konfirmasiHapusSemua()">Hapus Semua</button>
+          </div>
+        </div>
+        <ul id="logList">
+          <li class="kosong">Belum ada aktivitas.</li>
+        </ul>
+      </section>
+
+      <!-- TOMBOL SPREADSHEET -->
+      <section class="card card-sheet">
+        <button class="btn btn-sheet" onclick="bukaSpreadsheet()">
+          📊 Lihat Data Spreadsheet
+        </button>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ============= MODAL KONFIRMASI HAPUS SEMUA ============= -->
+  <div id="modalHapus" class="modal-overlay hidden">
+    <div class="modal-box">
+      <p class="modal-icon">⚠️</p>
+      <p class="modal-title">Hapus Semua Data?</p>
+      <p class="modal-desc">Semua riwayat sesi akan dihapus. Tindakan ini tidak dapat dibatalkan.</p>
+      <div class="modal-actions">
+        <button class="btn btn-kembali" onclick="tutupModal()">Tidak</button>
+        <button class="btn btn-ambil" onclick="hapusSemua()">Ya, Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============= MODAL HAPUS PER KELAS =================== -->
+  <div id="modalHapusKelas" class="modal-overlay hidden">
+    <div class="modal-box">
+      <p class="modal-icon">🗑️</p>
+      <p class="modal-title">Hapus Data Kelas</p>
+      <p class="modal-desc">Pilih kelas yang ingin dihapus dari riwayat sesi ini.</p>
+      <select id="selectHapusKelas" class="select" style="margin-bottom:16px">
+        <option value="" disabled selected>-- Pilih Kelas --</option>
+      </select>
+      <div class="modal-actions">
+        <button class="btn btn-kembali" onclick="tutupModalKelas()">Batal</button>
+        <button class="btn btn-ambil" onclick="hapusPerKelas()">Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
