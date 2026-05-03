@@ -46,7 +46,7 @@
         <div class="logo">🍱 <span>MBG Tracker</span></div>
         <div class="header-right">
           <div id="tanggal" class="tanggal"></div>
-          <button class="btn-logout" onclick="doLogout()" title="Keluar">⏏ Keluar</button>
+          <button class="btn-logout" onclick="konfirmasiLogout()" title="Keluar">⏏ Keluar</button>
         </div>
       </div>
       <div class="header-guru">
@@ -62,7 +62,6 @@
 
         <div id="imgPreviewWrap" class="img-preview-wrap hidden">
           <img id="imgPreview" class="img-preview" src="" alt="Gambar menu" />
-          <button class="btn-img-hapus" onclick="hapusGambar()" title="Hapus gambar">✕ Hapus Gambar</button>
         </div>
 
         <div id="imgPlaceholder" class="img-placeholder">
@@ -70,9 +69,22 @@
           <p>Belum ada gambar</p>
         </div>
 
-        <label class="btn btn-kembali btn-upload" for="inputGambar">
+        <!-- Tombol Upload (tampil jika belum ada gambar) -->
+        <label id="btnUploadLabel" class="btn btn-kembali btn-upload" for="inputGambar">
           📤 Upload Gambar
         </label>
+
+        <!-- Tombol Edit (tampil jika sudah ada gambar) -->
+        <button id="btnEditGambar" class="btn btn-kembali btn-upload hidden" onclick="toggleMenuGambar()">
+          ✏️ Edit Gambar
+        </button>
+
+        <!-- Dropdown menu edit gambar -->
+        <div id="menuEditGambar" class="menu-edit-gambar hidden">
+          <label class="menu-edit-item" for="inputGambar">🔄 Ganti Gambar</label>
+          <button class="menu-edit-item menu-edit-hapus" onclick="hapusGambar()">🗑️ Hapus Gambar</button>
+        </div>
+
         <input type="file" id="inputGambar" accept="image/*" style="display:none" onchange="uploadGambar(event)" />
       </section>
 
@@ -128,6 +140,19 @@
     </main>
   </div>
 
+  <!-- ============= MODAL KONFIRMASI LOGOUT ================ -->
+  <div id="modalLogout" class="modal-overlay hidden">
+    <div class="modal-box">
+      <p class="modal-icon">⏏️</p>
+      <p class="modal-title">Keluar dari Akun?</p>
+      <p class="modal-desc">Apakah Anda yakin ingin keluar dari sesi ini?</p>
+      <div class="modal-actions">
+        <button class="btn btn-kembali" onclick="tutupModalLogout()">Tidak</button>
+        <button class="btn btn-ambil" onclick="doLogout()">Ya, Keluar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ============= MODAL KONFIRMASI HAPUS SEMUA ============= -->
   <div id="modalHapus" class="modal-overlay hidden">
     <div class="modal-box">
@@ -146,7 +171,7 @@
     <div class="modal-box">
       <p class="modal-icon">🗑️</p>
       <p class="modal-title">Hapus Data Kelas</p>
-      <p class="modal-desc">Pilih kelas yang ingin dihapus dari riwayat sesi ini.</p>
+      <p class="modal-desc">Pilih kelas yang ingin dihapus. Data di website <strong>dan spreadsheet</strong> akan dihapus permanen.</p>
       <select id="selectHapusKelas" class="select" style="margin-bottom:16px">
         <option value="" disabled selected>-- Pilih Kelas --</option>
       </select>

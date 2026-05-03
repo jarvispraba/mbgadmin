@@ -97,7 +97,16 @@ function doLogout() {
   guruLogin = null;
   document.getElementById("inputEmail").value = "";
   document.getElementById("loginMsg").textContent = "";
+  tutupModalLogout();
   tampilHalaman("pageLogin");
+}
+
+function konfirmasiLogout() {
+  document.getElementById("modalLogout").classList.remove("hidden");
+}
+
+function tutupModalLogout() {
+  document.getElementById("modalLogout").classList.add("hidden");
 }
 
 function setLoginMsg(teks, sukses) {
@@ -128,7 +137,6 @@ function uploadGambar(event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  // Batasi ukuran file: maks 2 MB
   if (file.size > 2 * 1024 * 1024) {
     tampilkanToast("⚠️ Ukuran gambar maks 2 MB", "gagal");
     return;
@@ -139,11 +147,11 @@ function uploadGambar(event) {
     const dataUrl = e.target.result;
     localStorage.setItem("mbg_gambar", dataUrl);
     tampilGambar(dataUrl);
+    tutupMenuGambar();
     tampilkanToast("Gambar berhasil diupload ✅", "sukses");
   };
   reader.readAsDataURL(file);
 
-  // Reset input agar bisa upload ulang file yang sama
   event.target.value = "";
 }
 
@@ -156,6 +164,9 @@ function tampilGambar(src) {
   document.getElementById("imgPreview").src = src;
   document.getElementById("imgPreviewWrap").classList.remove("hidden");
   document.getElementById("imgPlaceholder").classList.add("hidden");
+  // Ganti tombol Upload → Edit
+  document.getElementById("btnUploadLabel").classList.add("hidden");
+  document.getElementById("btnEditGambar").classList.remove("hidden");
 }
 
 function hapusGambar() {
@@ -163,8 +174,30 @@ function hapusGambar() {
   document.getElementById("imgPreview").src = "";
   document.getElementById("imgPreviewWrap").classList.add("hidden");
   document.getElementById("imgPlaceholder").classList.remove("hidden");
+  // Ganti tombol Edit → Upload
+  document.getElementById("btnEditGambar").classList.add("hidden");
+  document.getElementById("btnUploadLabel").classList.remove("hidden");
+  tutupMenuGambar();
   tampilkanToast("Gambar dihapus", "");
 }
+
+function toggleMenuGambar() {
+  const menu = document.getElementById("menuEditGambar");
+  menu.classList.toggle("hidden");
+}
+
+function tutupMenuGambar() {
+  document.getElementById("menuEditGambar").classList.add("hidden");
+}
+
+// Tutup menu edit gambar jika klik di luar
+document.addEventListener("click", (e) => {
+  const menu   = document.getElementById("menuEditGambar");
+  const btnEdit = document.getElementById("btnEditGambar");
+  if (menu && btnEdit && !menu.contains(e.target) && e.target !== btnEdit) {
+    tutupMenuGambar();
+  }
+});
 
 // ============================================================
 //  KIRIM DATA KE GOOGLE APPS SCRIPT
@@ -296,18 +329,37 @@ function tutupModalKelas() {
   document.getElementById("modalHapusKelas").classList.add("hidden");
 }
 
-function hapusPerKelas() {
+async function hapusPerKelas() {
   const kelas = document.getElementById("selectHapusKelas").value;
   if (!kelas) {
     tampilkanToast("⚠️ Pilih kelas terlebih dahulu", "gagal");
     return;
   }
 
+  // Hapus dari log lokal
   logSesi = logSesi.filter(i => i.kelas !== kelas);
   simpanLog();
   renderLog();
   tutupModalKelas();
-  tampilkanToast(`Data ${kelas} dihapus ✅`, "sukses");
+  tampilkanToast(`Menghapus data ${kelas}...`, "");
+
+  // Kirim request delete ke Google Apps Script
+  try {
+    const res = await fetch(scriptURL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({ kelas, action: "delete", guru: guruLogin }),
+    });
+
+    if (res.ok) {
+      tampilkanToast(`Data ${kelas} dihapus dari spreadsheet ✅`, "sukses");
+    } else {
+      throw new Error("Response tidak OK");
+    }
+  } catch (err) {
+    console.error(err);
+    tampilkanToast(`Data lokal dihapus, tapi gagal sinkron spreadsheet ⚠️`, "gagal");
+  }
 }
 
 // ============================================================
