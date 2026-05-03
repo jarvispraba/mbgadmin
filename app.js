@@ -3,7 +3,7 @@
 //  Ganti scriptURL & SPREADSHEET_URL sesuai milik kamu
 // ============================================================
 
-const scriptURL = "https://script.google.com/macros/s/AKfycbzvcQ3I1nF2EZugVG4-Z61Kfk4u9KWIPDsPX2FybBhs-QVAPyiPZ9XpIvHR9PpA9qDE/exec";
+const scriptURL = "https://script.google.com/macros/s/AKfycbxWyLth-9PXQloKxtAKjqb-cZoR0NIzj2PcjaQCxjCE6LugRcPveZHm6YCe99lwSttI/exec";
 
 // URL Google Spreadsheet yang akan dibuka saat tombol diklik
 const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1NsPx0F0eYdipUNROnK28baL0_ncKI9auOXWbLrvfZHc/edit?usp=sharing";
