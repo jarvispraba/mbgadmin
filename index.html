@@ -20,7 +20,13 @@
 
       <div class="login-card">
         <label class="label" for="inputEmail">Email Guru</label>
-        <input type="email" id="inputEmail" class="input" placeholder="nama@sekolah.sch.id" autocomplete="email" />
+        <input
+          type="email"
+          id="inputEmail"
+          class="input"
+          placeholder="nama@sekolah.sch.id"
+          autocomplete="email"
+        />
         <button class="btn btn-ambil" id="btnLogin" onclick="doLogin()">
           🔐 Masuk
         </button>
@@ -50,82 +56,90 @@
 
     <main>
 
-      <!-- GAMBAR HARI INI -->
-      <section class="card">
-        <h2>🖼️ Gambar Menu / Informasi</h2>
-
-        <div id="imgPreviewWrap" class="img-preview-wrap hidden">
-          <img id="imgPreview" class="img-preview" src="" alt="Gambar menu" />
-        </div>
-
-        <div id="imgPlaceholder" class="img-placeholder">
-          <span>📷</span>
-          <p>Belum ada gambar</p>
-        </div>
-
-        <!-- Tombol Upload (tampil jika belum ada gambar) -->
-        <label id="btnUploadLabel" class="btn btn-kembali btn-upload" for="inputGambar">
-          📤 Upload Gambar
-        </label>
-
-        <!-- Tombol Edit (tampil jika sudah ada gambar) -->
-        <button id="btnEditGambar" class="btn btn-kembali btn-upload hidden" onclick="toggleMenuGambar()">
-          ✏️ Edit Gambar
-        </button>
-
-        <!-- Dropdown menu edit gambar -->
-        <div id="menuEditGambar" class="menu-edit-gambar hidden">
-          <label class="menu-edit-item" for="inputGambar">🔄 Ganti Gambar</label>
-          <button class="menu-edit-item menu-edit-hapus" onclick="hapusGambar()">🗑️ Hapus Gambar</button>
-        </div>
-
-        <input type="file" id="inputGambar" accept="image/*" style="display:none" onchange="uploadGambar(event)" />
+      <!-- SELAMAT DATANG -->
+      <section class="card card-welcome">
+        <div class="welcome-icon">🍱</div>
+        <p class="welcome-text">Selamat datang di website pengambilan MBG<br><strong>SMK Telkom Malang</strong></p>
       </section>
 
-      <!-- FORM CHECKLIST -->
+      <!-- FORM INPUT MBG -->
       <section class="card">
-        <h2>📋 Checklist MBG</h2>
+        <h2>📋 Input Data MBG</h2>
 
+        <!-- Kelas -->
         <label class="label" for="kelas">Pilih Kelas</label>
-        <select id="kelas" class="select">
+        <select id="kelas" class="select" onchange="onKelasChange()">
           <option value="" disabled selected>-- Pilih Kelas --</option>
-          <option>X RPL 1</option>
-          <option>X RPL 2</option>
-          <option>X RPL 3</option>
-          <option>X RPL 4</option>
-          <option>X RPL 5</option>
-          <option>X RPL 6</option>
-          <option>X RPL 7</option>
-          <option>X RPL 8</option>
-          <option>X TKJ 1</option>
-          <option>X TKJ 2</option>
-          <option>X TKJ 3</option>
-          <option>X TKJ 4</option>
-          <option>X PG 1</option>
-          <option>X PG 2</option>
-                    <option>X Internasional</option>
-          <option></option>
-
-          <option>XI RPL 1</option>
-          <option>XI RPL 2</option>
-          <option>XI RPL 3</option>
-          <option>XI RPL 4</option>
-          <option>XI RPL 5</option>
-          <option>XI RPL 6</option>
-          <option>XI RPL 7</option>
-          <option>XI RPL 8</option>
-          <option>XI TKJ 1</option>
-          <option>XI TKJ 2</option>
-          <option>XI TKJ 3</option>
-          <option>XI TKJ 4</option>
-          <option>XI PG 1</option>
-          <option>XI PG 2</option>
+          <optgroup label="Kelas X">
+            <option>X RPL 1</option>
+            <option>X RPL 2</option>
+            <option>X RPL 3</option>
+            <option>X RPL 4</option>
+            <option>X RPL 5</option>
+            <option>X RPL 6</option>
+            <option>X RPL 7</option>
+            <option>X RPL 8</option>
+            <option>X TKJ 1</option>
+            <option>X TKJ 2</option>
+            <option>X TKJ 3</option>
+            <option>X TKJ 4</option>
+            <option>X PG 1</option>
+            <option>X PG 2</option>
+            <option>X Internasional</option>
+          </optgroup>
+          <optgroup label="Kelas XI">
+            <option>XI RPL 1</option>
+            <option>XI RPL 2</option>
+            <option>XI RPL 3</option>
+            <option>XI RPL 4</option>
+            <option>XI RPL 5</option>
+            <option>XI RPL 6</option>
+            <option>XI RPL 7</option>
+            <option>XI RPL 8</option>
+            <option>XI TKJ 1</option>
+            <option>XI TKJ 2</option>
+            <option>XI TKJ 3</option>
+            <option>XI TKJ 4</option>
+            <option>XI PG 1</option>
+            <option>XI PG 2</option>
+          </optgroup>
         </select>
 
-        <div class="piring-info" id="piringInfo" style="display:none">
-          🍽️ Jumlah piring: <strong>34</strong>
+        <div class="divider"></div>
+
+        <!-- SEKSI MENGAMBIL -->
+        <div class="seksi-label seksi-ambil">🍽️ Data Pengambilan</div>
+
+        <label class="label" for="namaPengambil">Nama Pengambil</label>
+        <input type="text" id="namaPengambil" class="input" placeholder="Nama siswa pengambil MBG" />
+
+        <label class="label mt" for="omprengDiambil">Jumlah Ompreng Diambil</label>
+        <input type="number" id="omprengDiambil" class="input" placeholder="Contoh: 34" min="0" />
+
+        <div class="divider"></div>
+
+        <!-- SEKSI MENGEMBALIKAN -->
+        <div class="seksi-label seksi-kembali">🔄 Data Pengembalian</div>
+
+        <label class="label" for="namaPengembali">Nama Pengembali</label>
+        <input type="text" id="namaPengembali" class="input" placeholder="Nama siswa pengembali MBG" />
+
+        <label class="label mt" for="omprengDikembalikan">Jumlah Ompreng Dikembalikan</label>
+        <input type="number" id="omprengDikembalikan" class="input" placeholder="Contoh: 34" min="0" />
+
+        <div class="divider"></div>
+
+        <!-- ALERGI -->
+        <label class="label" for="jumlahAlergi">🤧 Jumlah Siswa Alergi</label>
+        <input type="number" id="jumlahAlergi" class="input" placeholder="Contoh: 2" min="0" />
+
+        <!-- PERINGATAN SELISIH -->
+        <div id="peringatanSelisih" class="peringatan-selisih hidden">
+          <span class="peringatan-icon">⚠️</span>
+          <span id="pesanSelisih"></span>
         </div>
 
+        <!-- TOMBOL AKSI -->
         <div class="btn-group">
           <button id="btnAmbil" class="btn btn-ambil" onclick="kirim('Mengambil')">
             🍽️ Sudah Mengambil
@@ -134,6 +148,15 @@
             🔄 Sudah Mengembalikan
           </button>
         </div>
+
+        <!-- APPROVED -->
+        <div class="divider"></div>
+        <label class="label" for="namaApproved">✔️ Approved oleh (nama guru)</label>
+        <div class="approved-row">
+          <input type="text" id="namaApproved" class="input" placeholder="Nama guru yang menyetujui" />
+          <button class="btn btn-approved" onclick="kirimApproved()">Kirim</button>
+        </div>
+
       </section>
 
       <!-- LOG SESI -->
@@ -145,9 +168,9 @@
             <button class="btn-hapus" onclick="konfirmasiHapusSemua()">Hapus Semua</button>
           </div>
         </div>
-        <ul id="logList">
-          <li class="kosong">Belum ada aktivitas.</li>
-        </ul>
+        <div id="logList" class="log-list">
+          <p class="kosong">Belum ada aktivitas.</p>
+        </div>
       </section>
 
       <!-- TOMBOL SPREADSHEET -->
@@ -191,8 +214,7 @@
     <div class="modal-box">
       <p class="modal-icon">🗑️</p>
       <p class="modal-title">Hapus Data Kelas</p>
-      <p class="modal-desc">Pilih kelas yang ingin dihapus. Data di website <strong>dan spreadsheet</strong> akan
-        dihapus permanen.</p>
+      <p class="modal-desc">Pilih kelas yang ingin dihapus. Data di website <strong>dan spreadsheet</strong> akan dihapus permanen.</p>
       <select id="selectHapusKelas" class="select" style="margin-bottom:16px">
         <option value="" disabled selected>-- Pilih Kelas --</option>
       </select>
