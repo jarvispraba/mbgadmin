@@ -1,5 +1,5 @@
 // ============================================================
-//  MBG TRACKER – app.js  (Versi Guru v5)
+//  MBG TRACKER – app.js  (Versi Guru v6)
 // ============================================================
 
 const scriptURL = "https://script.google.com/macros/s/AKfycbzvBrfgjbsVTSebOKUsjFx8CZzHuo40ouTH5a5BfjWEixT3ZZRwTQ3gM859NSQOS-37/exec";
@@ -8,8 +8,13 @@ const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1NsPx0F0eYdipUNR
 const EMAIL_WHITELIST = [
   "jarvispraba@gmail.com",
   "guru2@sekolah.sch.id",
-  "admin@sekolah.sch.id",
+  " ",
 ];
+
+// ── Konstanta batas input ────────────────────────────────────
+const MAKS_NAMA  = 30;
+const MAKS_ANGKA = 40;
+const MIN_ANGKA  = 0;
 
 let guruLogin = null;
 let logSesi   = [];
@@ -47,16 +52,10 @@ function tampilHalaman(id) {
 // ============================================================
 function setMode(mode) {
   modeAktif = mode;
-
-  // Update tombol mode
   document.getElementById("btnModeAmbil").classList.toggle("active", mode === "ambil");
   document.getElementById("btnModeKembali").classList.toggle("active", mode === "kembali");
-
-  // Tampilkan form yang sesuai
   document.getElementById("formAmbil").classList.toggle("hidden", mode !== "ambil");
   document.getElementById("formKembali").classList.toggle("hidden", mode !== "kembali");
-
-  // Reset field form yang ditampilkan
   resetFormAktif(mode);
 }
 
@@ -66,11 +65,15 @@ function resetFormAktif(mode) {
       document.getElementById(id).value = "";
       document.getElementById(id).classList.remove("error");
     });
+    const h = document.getElementById("hintNamaPengambil");
+    if (h) h.textContent = "";
   } else {
     ["namaPengembali", "omprengDikembalikan"].forEach(id => {
       document.getElementById(id).value = "";
       document.getElementById(id).classList.remove("error");
     });
+    const h = document.getElementById("hintNamaPengembali");
+    if (h) h.textContent = "";
     document.getElementById("peringatanSelisih").classList.add("hidden");
   }
 }
@@ -80,7 +83,6 @@ function resetFormAktif(mode) {
 // ============================================================
 function doLogin() {
   const email = document.getElementById("inputEmail").value.trim().toLowerCase();
-
   if (!email) { setLoginMsg("⚠️ Masukkan email terlebih dahulu.", false); return; }
   if (!isValidEmail(email)) { setLoginMsg("⚠️ Format email tidak valid.", false); return; }
 
@@ -89,7 +91,6 @@ function doLogin() {
     setLoginMsg("🔒 Menunggu persetujuan admin. Hubungi admin sekolah.", false);
     return;
   }
-
   sessionStorage.setItem("mbg_guru", email);
   masukDashboard(email);
 }
@@ -139,7 +140,6 @@ function tampilkanTanggal() {
   });
 }
 
-// Format tanggal konsisten untuk spreadsheet: DD MMMM YYYY
 function getTanggalHari() {
   return new Date().toLocaleDateString("id-ID", {
     day: "2-digit", month: "long", year: "numeric"
@@ -147,22 +147,86 @@ function getTanggalHari() {
 }
 
 // ============================================================
-//  CEK SELISIH OMPRENG (real-time, hanya di form kembali)
+//  HELPERS VALIDASI INPUT
+// ============================================================
+
+// Clamp angka ke MIN–MAKS saat user mengetik (fix bug angka berubah sendiri)
+function clampAngka(el) {
+  const raw = el.value;
+  if (raw === "" || raw === "-") return; // biarkan kosong saat sedang mengetik
+
+  const val = parseInt(raw, 10); // radix 10 wajib — hindari parsing octal/hex
+  if (isNaN(val) || val < MIN_ANGKA) {
+    el.value = "";
+    return;
+  }
+  if (val > MAKS_ANGKA) {
+    el.value = MAKS_ANGKA;
+    el.classList.add("error");
+    tampilkanToast(`⚠️ Maksimal ${MAKS_ANGKA}`, "gagal");
+    setTimeout(() => el.classList.remove("error"), 2000);
+    return;
+  }
+  // Tulis ulang nilai bersih — mencegah nilai "ganda" atau trailing karakter
+  el.value = val;
+  el.classList.remove("error");
+}
+
+// Tampilkan hint sisa karakter nama
+function cekPanjangNama(el, hintId) {
+  const panjang = el.value.length;
+  const hint    = document.getElementById(hintId);
+  if (!hint) return;
+
+  if (panjang >= MAKS_NAMA) {
+    hint.textContent = `Batas ${MAKS_NAMA} karakter tercapai`;
+    hint.className   = "input-hint";
+    el.classList.add("error");
+  } else if (panjang >= MAKS_NAMA - 5) {
+    hint.textContent = `${MAKS_NAMA - panjang} karakter tersisa`;
+    hint.className   = "input-hint";
+    el.classList.remove("error");
+  } else {
+    hint.textContent = "";
+    el.classList.remove("error");
+  }
+}
+
+// Ambil angka bersih (parseInt radix 10, clamp ke MIN–MAKS)
+function ambilAngka(id) {
+  const val = parseInt(document.getElementById(id).value, 10);
+  if (isNaN(val)) return 0;
+  return Math.min(Math.max(val, MIN_ANGKA), MAKS_ANGKA);
+}
+
+// Ambil teks bersih (trim + potong maks karakter)
+function ambilTeks(id) {
+  return document.getElementById(id).value.trim().slice(0, MAKS_NAMA);
+}
+
+function sorotError(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add("error");
+  setTimeout(() => el.classList.remove("error"), 2500);
+}
+
+// ============================================================
+//  CEK SELISIH OMPRENG (real-time di form kembali)
 // ============================================================
 function cekSelisih() {
-  // Ambil data ompreng diambil dari log sesi kelas yang dipilih hari ini
   const kelas   = document.getElementById("kelas").value;
   const tanggal = getTanggalHari();
   const entri   = logSesi.find(i => i.kelas === kelas && i.tanggal === tanggal);
 
   const diambil      = entri ? (entri.omprengDiambil || 0) : 0;
-  const dikembalikan = parseInt(document.getElementById("omprengDikembalikan").value) || 0;
+  const dikembalikan = parseInt(document.getElementById("omprengDikembalikan").value, 10) || 0;
   const wrap         = document.getElementById("peringatanSelisih");
   const pesan        = document.getElementById("pesanSelisih");
 
-  if (dikembalikan > 0 && diambil > 0 && dikembalikan < diambil) {
+  if (diambil > 0 && dikembalikan > 0 && dikembalikan < diambil) {
     const selisih = diambil - dikembalikan;
-    pesan.textContent = `Ompreng kurang ${selisih} (diambil: ${diambil}, dikembalikan: ${dikembalikan})`;
+    pesan.textContent = `Jumlah ompreng yang dikembalikan kurang ${selisih} (diambil: ${diambil}, dikembalikan: ${dikembalikan})`;
     wrap.classList.remove("hidden");
   } else {
     wrap.classList.add("hidden");
@@ -173,7 +237,6 @@ function cekSelisih() {
 //  KELAS CHANGE
 // ============================================================
 function onKelasChange() {
-  // Reset mode dan sembunyikan kedua form
   modeAktif = null;
   document.getElementById("btnModeAmbil").classList.remove("active");
   document.getElementById("btnModeKembali").classList.remove("active");
@@ -183,35 +246,81 @@ function onKelasChange() {
 }
 
 // ============================================================
-//  VALIDASI
+//  VALIDASI FORM
 // ============================================================
 function validasiAmbil() {
-  const kelas = document.getElementById("kelas").value;
-  const nama  = document.getElementById("namaPengambil").value.trim();
-  const jml   = document.getElementById("omprengDiambil").value;
+  const kelas  = document.getElementById("kelas").value;
+  const nama   = ambilTeks("namaPengambil");
+  const rawJml = document.getElementById("omprengDiambil").value;
+  const jml    = ambilAngka("omprengDiambil");
 
-  if (!kelas) { sorotError("kelas"); tampilkanToast("⚠️ Pilih kelas terlebih dahulu!", "gagal"); return false; }
-  if (!nama)  { sorotError("namaPengambil"); tampilkanToast("⚠️ Isi nama pengambil!", "gagal"); return false; }
-  if (jml === "" || parseInt(jml) < 0) { sorotError("omprengDiambil"); tampilkanToast("⚠️ Isi jumlah ompreng diambil!", "gagal"); return false; }
+  if (!kelas) {
+    sorotError("kelas");
+    tampilkanToast("⚠️ Pilih kelas terlebih dahulu!", "gagal");
+    return false;
+  }
+  if (!nama) {
+    sorotError("namaPengambil");
+    tampilkanToast("⚠️ Isi nama pengambil!", "gagal");
+    return false;
+  }
+  if (rawJml === "") {
+    sorotError("omprengDiambil");
+    tampilkanToast("⚠️ Isi jumlah ompreng diambil!", "gagal");
+    return false;
+  }
+  if (jml < MIN_ANGKA || jml > MAKS_ANGKA) {
+    sorotError("omprengDiambil");
+    tampilkanToast(`⚠️ Jumlah ompreng harus ${MIN_ANGKA}–${MAKS_ANGKA}!`, "gagal");
+    return false;
+  }
   return true;
 }
 
 function validasiKembali() {
-  const kelas = document.getElementById("kelas").value;
-  const nama  = document.getElementById("namaPengembali").value.trim();
-  const jml   = document.getElementById("omprengDikembalikan").value;
+  const kelas    = document.getElementById("kelas").value;
+  const nama     = ambilTeks("namaPengembali");
+  const rawJml   = document.getElementById("omprengDikembalikan").value;
+  const jml      = ambilAngka("omprengDikembalikan");
+  const tanggal  = getTanggalHari();
 
-  if (!kelas) { sorotError("kelas"); tampilkanToast("⚠️ Pilih kelas terlebih dahulu!", "gagal"); return false; }
-  if (!nama)  { sorotError("namaPengembali"); tampilkanToast("⚠️ Isi nama pengembali!", "gagal"); return false; }
-  if (jml === "" || parseInt(jml) < 0) { sorotError("omprengDikembalikan"); tampilkanToast("⚠️ Isi jumlah ompreng dikembalikan!", "gagal"); return false; }
+  if (!kelas) {
+    sorotError("kelas");
+    tampilkanToast("⚠️ Pilih kelas terlebih dahulu!", "gagal");
+    return false;
+  }
+  if (!nama) {
+    sorotError("namaPengembali");
+    tampilkanToast("⚠️ Isi nama pengembali!", "gagal");
+    return false;
+  }
+  if (rawJml === "") {
+    sorotError("omprengDikembalikan");
+    tampilkanToast("⚠️ Isi jumlah ompreng dikembalikan!", "gagal");
+    return false;
+  }
+  if (jml < MIN_ANGKA || jml > MAKS_ANGKA) {
+    sorotError("omprengDikembalikan");
+    tampilkanToast(`⚠️ Jumlah ompreng harus ${MIN_ANGKA}–${MAKS_ANGKA}!`, "gagal");
+    return false;
+  }
+
+  // ❌ BLOK jika ompreng dikembalikan < diambil
+  const entri   = logSesi.find(i => i.kelas === kelas && i.tanggal === tanggal);
+  const diambil = entri ? (entri.omprengDiambil || 0) : 0;
+  if (diambil > 0 && jml < diambil) {
+    const selisih = diambil - jml;
+    sorotError("omprengDikembalikan");
+    // Tampilkan peringatan permanen di UI
+    const wrap  = document.getElementById("peringatanSelisih");
+    const pesan = document.getElementById("pesanSelisih");
+    pesan.textContent = `Jumlah ompreng yang dikembalikan kurang ${selisih} (diambil: ${diambil}, dikembalikan: ${jml})`;
+    wrap.classList.remove("hidden");
+    tampilkanToast(`⚠️ Ompreng kurang ${selisih}! Data tidak dapat dikirim.`, "gagal");
+    return false; // ← BLOK submit
+  }
+
   return true;
-}
-
-function sorotError(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.classList.add("error");
-  setTimeout(() => el.classList.remove("error"), 2000);
 }
 
 // ============================================================
@@ -222,21 +331,12 @@ async function kirim(aksi) {
   if (aksi === "Mengembalikan" && !validasiKembali()) return;
 
   const kelas               = document.getElementById("kelas").value;
-  const namaPengambil       = document.getElementById("namaPengambil").value.trim();
-  const omprengDiambil      = parseInt(document.getElementById("omprengDiambil").value) || 0;
-  const namaPengembali      = document.getElementById("namaPengembali").value.trim();
-  const omprengDikembalikan = parseInt(document.getElementById("omprengDikembalikan").value) || 0;
-  const jumlahAlergi        = parseInt(document.getElementById("jumlahAlergi").value) || 0;
+  const namaPengambil       = ambilTeks("namaPengambil");
+  const omprengDiambil      = ambilAngka("omprengDiambil");
+  const namaPengembali      = ambilTeks("namaPengembali");
+  const omprengDikembalikan = ambilAngka("omprengDikembalikan");
+  const jumlahAlergi        = ambilAngka("jumlahAlergi");
   const tanggal             = getTanggalHari();
-
-  // Peringatan selisih saat submit
-  if (aksi === "Mengembalikan") {
-    const entri = logSesi.find(i => i.kelas === kelas && i.tanggal === tanggal);
-    const diambil = entri ? (entri.omprengDiambil || 0) : 0;
-    if (diambil > 0 && omprengDikembalikan < diambil) {
-      tampilkanToast(`⚠️ Ompreng kurang ${diambil - omprengDikembalikan}! Data tetap dikirim.`, "warn");
-    }
-  }
 
   setTombol(true);
 
@@ -261,8 +361,12 @@ async function kirim(aksi) {
 
     if (res.ok) {
       tampilkanToast(`Data ${aksi} berhasil dikirim ✅`, "sukses");
-      updateLog(kelas, tanggal, aksi, { namaPengambil, omprengDiambil, namaPengembali, omprengDikembalikan, jumlahAlergi });
-      resetFormAktif(modeAktif); // reset field setelah submit
+      updateLog(kelas, tanggal, aksi, {
+        namaPengambil, omprengDiambil,
+        namaPengembali, omprengDikembalikan,
+        jumlahAlergi
+      });
+      resetFormAktif(modeAktif);
     } else {
       throw new Error("Response tidak OK");
     }
@@ -282,7 +386,7 @@ function setTombol(disabled) {
 }
 
 // ============================================================
-//  LOG SESI
+//  LOG SESI (1 kelas + 1 tanggal = 1 entri)
 // ============================================================
 function updateLog(kelas, tanggal, aksi, data) {
   const jam = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
@@ -341,24 +445,27 @@ function renderLog() {
                       : item.status === "Dikembalikan" ? "label-kembali"
                       : "label-kembali";
 
-    // Hitung selisih jika ada data keduanya
-    const selisih = (item.omprengDiambil > 0 && item.jamKembali && item.omprengDikembalikan < item.omprengDiambil)
-      ? item.omprengDiambil - item.omprengDikembalikan
-      : 0;
+    const selisih = (item.omprengDiambil > 0 && item.jamKembali &&
+                     item.omprengDikembalikan < item.omprengDiambil)
+      ? item.omprengDiambil - item.omprengDikembalikan : 0;
+
+    // Hitung status ompreng: tuntas atau selisih
+    const statusOmpreng = item.jamKembali
+      ? (selisih === 0 ? " · <span style=\"color:#16a34a\">✔ tuntas</span>"
+                       : ` · <span style="color:#FF0000">⚠️ kurang ${selisih}</span>`)
+      : "";
 
     let rows = "";
-
     if (item.namaPengambil) {
       rows += `<div class="log-row">
         <span class="log-row-label label-ambil">Ambil</span>
         <span class="log-detail-text">${item.namaPengambil} · Ompreng: ${item.omprengDiambil}${item.jumlahAlergi > 0 ? ` · Alergi: ${item.jumlahAlergi}` : ""}</span>
       </div>`;
     }
-
     if (item.namaPengembali) {
       rows += `<div class="log-row">
         <span class="log-row-label label-kembali">Kembali</span>
-        <span class="log-detail-text">${item.namaPengembali} · Ompreng: ${item.omprengDikembalikan}${selisih > 0 ? ` <span style="color:#FF0000">⚠️ kurang ${selisih}</span>` : ""}</span>
+        <span class="log-detail-text">${item.namaPengembali} · Ompreng: ${item.omprengDikembalikan}${statusOmpreng}</span>
       </div>`;
     }
 
@@ -374,11 +481,12 @@ function renderLog() {
 }
 
 function simpanLog() {
-  localStorage.setItem("mbg_log_v5", JSON.stringify(logSesi));
+  localStorage.setItem("mbg_log_v6", JSON.stringify(logSesi));
 }
 
 function muatLog() {
-  const saved = localStorage.getItem("mbg_log_v5");
+  // Coba muat dari v6, fallback ke v5 agar data lama tidak hilang
+  const saved = localStorage.getItem("mbg_log_v6") || localStorage.getItem("mbg_log_v5");
   if (saved) {
     try { logSesi = JSON.parse(saved); } catch { logSesi = []; }
   }

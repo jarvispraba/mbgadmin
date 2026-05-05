@@ -132,9 +132,15 @@ function buatRowKosong(kelas, tanggal) {
 
 // ── Hitung status dari isi baris ────────────────────────────
 function hitungStatus(sheet, rowIdx) {
-  var pengambil  = sheet.getRange(rowIdx, COL.NAMA_PENGAMBIL).getValue();
-  var pengembali = sheet.getRange(rowIdx, COL.NAMA_PENGEMBALI).getValue();
-  if (pengambil && pengembali) return "Selesai";
+  var pengambil        = sheet.getRange(rowIdx, COL.NAMA_PENGAMBIL).getValue();
+  var pengembali       = sheet.getRange(rowIdx, COL.NAMA_PENGEMBALI).getValue();
+  var omprengDiambil   = Number(sheet.getRange(rowIdx, COL.OMPRENG_DIAMBIL).getValue()) || 0;
+  var omprengKembali   = Number(sheet.getRange(rowIdx, COL.OMPRENG_DIKEMBALIKAN).getValue()) || 0;
+
+  if (pengambil && pengembali) {
+    var selisih = omprengDiambil - omprengKembali;
+    return selisih === 0 ? "tuntas" : String(selisih * -1); // contoh: -2
+  }
   if (pengambil)  return "Diambil";
   if (pengembali) return "Dikembalikan";
   return "—";

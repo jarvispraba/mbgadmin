@@ -266,7 +266,22 @@ main {
 .seksi-ambil  { background: #fff0f0; color: #cc0000; }
 .seksi-kembali { background: #DFF1F1; color: #2a7a8a; }
 
-/* ===== PERINGATAN SELISIH ===== */
+/* ===== INPUT HINT ===== */
+.label-hint {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #aaa;
+}
+
+.input-hint {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #FF0000;
+  min-height: 18px;
+  margin-top: 4px;
+}
+
+.input-hint.ok { color: #16a34a; }
 .peringatan-selisih {
   display: flex;
   align-items: flex-start;

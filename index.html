@@ -119,14 +119,18 @@
         <div id="formAmbil" class="form-section hidden">
           <div class="seksi-label seksi-ambil">🍽️ Data Pengambilan</div>
 
-          <label class="label" for="namaPengambil">Nama Pengambil</label>
-          <input type="text" id="namaPengambil" class="input" placeholder="Nama siswa pengambil MBG" />
+          <label class="label" for="namaPengambil">Nama Pengambil <span class="label-hint">(maks. 30 karakter)</span></label>
+          <input type="text" id="namaPengambil" class="input" placeholder="Nama siswa pengambil MBG"
+            maxlength="30" oninput="cekPanjangNama(this, 'hintNamaPengambil')" />
+          <p class="input-hint" id="hintNamaPengambil"></p>
 
-          <label class="label mt" for="omprengDiambil">Jumlah Ompreng Diambil</label>
-          <input type="number" id="omprengDiambil" class="input" placeholder="Contoh: 34" min="0" />
+          <label class="label mt" for="omprengDiambil">Jumlah Ompreng Diambil <span class="label-hint">(0–40)</span></label>
+          <input type="number" id="omprengDiambil" class="input" placeholder="Contoh: 34"
+            min="0" max="40" oninput="clampAngka(this)" />
 
-          <label class="label mt" for="jumlahAlergi">🤧 Jumlah Siswa Alergi</label>
-          <input type="number" id="jumlahAlergi" class="input" placeholder="Contoh: 2" min="0" />
+          <label class="label mt" for="jumlahAlergi">🤧 Jumlah Siswa Alergi <span class="label-hint">(0–40)</span></label>
+          <input type="number" id="jumlahAlergi" class="input" placeholder="Contoh: 2"
+            min="0" max="40" oninput="clampAngka(this)" />
 
           <button id="btnAmbil" class="btn btn-ambil btn-submit" onclick="kirim('Mengambil')">
             🍽️ Sudah Mengambil
@@ -137,12 +141,14 @@
         <div id="formKembali" class="form-section hidden">
           <div class="seksi-label seksi-kembali">🔄 Data Pengembalian</div>
 
-          <label class="label" for="namaPengembali">Nama Pengembali</label>
-          <input type="text" id="namaPengembali" class="input" placeholder="Nama siswa pengembali MBG" />
+          <label class="label" for="namaPengembali">Nama Pengembali <span class="label-hint">(maks. 30 karakter)</span></label>
+          <input type="text" id="namaPengembali" class="input" placeholder="Nama siswa pengembali MBG"
+            maxlength="30" oninput="cekPanjangNama(this, 'hintNamaPengembali')" />
+          <p class="input-hint" id="hintNamaPengembali"></p>
 
-          <label class="label mt" for="omprengDikembalikan">Jumlah Ompreng Dikembalikan</label>
-          <input type="number" id="omprengDikembalikan" class="input" placeholder="Contoh: 34" min="0"
-            oninput="cekSelisih()" />
+          <label class="label mt" for="omprengDikembalikan">Jumlah Ompreng Dikembalikan <span class="label-hint">(0–40)</span></label>
+          <input type="number" id="omprengDikembalikan" class="input" placeholder="Contoh: 34"
+            min="0" max="40" oninput="clampAngka(this); cekSelisih()" />
 
           <!-- Peringatan selisih -->
           <div id="peringatanSelisih" class="peringatan-selisih hidden">
