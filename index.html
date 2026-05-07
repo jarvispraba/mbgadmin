@@ -121,7 +121,7 @@
 
           <label class="label" for="namaPengambil">Nama Pengambil <span class="label-hint">(maks. 30 karakter)</span></label>
           <input type="text" id="namaPengambil" class="input" placeholder="Nama siswa pengambil MBG"
-            maxlength="30" oninput="cekPanjangNama(this, 'hintNamaPengambil')" />
+            maxlength="30" oninput="sanitasiNama(this); cekPanjangNama(this, 'hintNamaPengambil')" />
           <p class="input-hint" id="hintNamaPengambil"></p>
 
           <label class="label mt" for="omprengDiambil">Jumlah Ompreng Diambil <span class="label-hint">(0–40)</span></label>
@@ -143,7 +143,7 @@
 
           <label class="label" for="namaPengembali">Nama Pengembali <span class="label-hint">(maks. 30 karakter)</span></label>
           <input type="text" id="namaPengembali" class="input" placeholder="Nama siswa pengembali MBG"
-            maxlength="30" oninput="cekPanjangNama(this, 'hintNamaPengembali')" />
+            maxlength="30" oninput="sanitasiNama(this); cekPanjangNama(this, 'hintNamaPengembali')" />
           <p class="input-hint" id="hintNamaPengembali"></p>
 
           <label class="label mt" for="omprengDikembalikan">Jumlah Ompreng Dikembalikan <span class="label-hint">(0–40)</span></label>

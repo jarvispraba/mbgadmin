@@ -35,7 +35,17 @@ function doPost(e) {
 
     pastikanHeader(sheet);
 
-    // ── DELETE ──────────────────────────────────────────────
+    // ── DELETE ALL ──────────────────────────────────────────
+    if (action === "delete_all") {
+      var lastRow = sheet.getLastRow();
+      if (lastRow > 1) {
+        // Hapus semua baris data (baris 2 ke bawah), header tetap
+        sheet.deleteRows(2, lastRow - 1);
+      }
+      return jsonResponse({ result: "success", action: "delete_all" });
+    }
+
+    // ── DELETE (per kelas) ──────────────────────────────────
     if (action === "delete") {
       var kelas = data.kelas || "";
       if (!kelas) return jsonResponse({ result: "error", message: "Kelas kosong" });
@@ -112,7 +122,7 @@ function doPost(e) {
 
 // ── doGet ────────────────────────────────────────────────────
 function doGet(e) {
-  return jsonResponse({ result: "MBG Tracker API aktif ✅ (v7)" });
+  return jsonResponse({ result: "MBG Tracker API aktif ✅ (v8)" });
 }
 
 // ── Cari baris berdasarkan kelas + tanggal ───────────────────

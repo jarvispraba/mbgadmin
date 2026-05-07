@@ -150,6 +150,15 @@ function getTanggalHari() {
 //  HELPERS VALIDASI INPUT
 // ============================================================
 
+// Sanitasi nama: hapus angka & karakter selain huruf dan spasi
+function sanitasiNama(el) {
+  const bersih = el.value.replace(/[^a-zA-Z\s]/g, "");
+  if (el.value !== bersih) {
+    el.value = bersih;
+    // Pertahankan posisi kursor setelah sanitasi
+  }
+}
+
 // Clamp angka ke MIN–MAKS saat user mengetik (fix bug angka berubah sendiri)
 function clampAngka(el) {
   const raw = el.value;
@@ -226,7 +235,13 @@ function cekSelisih() {
 
   if (diambil > 0 && dikembalikan > 0 && dikembalikan < diambil) {
     const selisih = diambil - dikembalikan;
-    pesan.textContent = `Jumlah ompreng yang dikembalikan kurang ${selisih} (diambil: ${diambil}, dikembalikan: ${dikembalikan})`;
+    const pesanUnik = [
+      `😅 Waduh! Omprengnya ke mana nih? Kurang ${selisih} nih!`,
+      `🍽️ Kayaknya ada yang belum balik… kurang ${selisih} ompreng!`,
+      `🤔 Hmm, kok kurang ${selisih} ya? Cek lagi yuk!`,
+      `⚠️ Eh tunggu, kurang ${selisih} ompreng! Jangan-jangan masih di kelas?`
+    ];
+    pesan.textContent = pesanUnik[selisih % pesanUnik.length]; // konsisten per nilai selisih
     wrap.classList.remove("hidden");
   } else {
     wrap.classList.add("hidden");
@@ -311,10 +326,16 @@ function validasiKembali() {
   if (diambil > 0 && jml < diambil) {
     const selisih = diambil - jml;
     sorotError("omprengDikembalikan");
-    // Tampilkan peringatan permanen di UI
+    // Tampilkan peringatan unik & fun
     const wrap  = document.getElementById("peringatanSelisih");
     const pesan = document.getElementById("pesanSelisih");
-    pesan.textContent = `Jumlah ompreng yang dikembalikan kurang ${selisih} (diambil: ${diambil}, dikembalikan: ${jml})`;
+    const pesanUnik = [
+      `😅 Waduh! Omprengnya ke mana nih? Kurang ${selisih} nih!`,
+      `🍽️ Kayaknya ada yang belum balik… kurang ${selisih} ompreng!`,
+      `🤔 Hmm, kok kurang ${selisih} ya? Cek lagi yuk!`,
+      `⚠️ Eh tunggu, kurang ${selisih} ompreng! Jangan-jangan masih di kelas?`
+    ];
+    pesan.textContent = pesanUnik[Math.floor(Math.random() * pesanUnik.length)];
     wrap.classList.remove("hidden");
     tampilkanToast(`⚠️ Ompreng kurang ${selisih}! Data tidak dapat dikirim.`, "gagal");
     return false; // ← BLOK submit
@@ -509,7 +530,19 @@ function hapusSemua() {
   simpanLog();
   renderLog();
   tutupModal();
-  tampilkanToast("Semua data dihapus", "");
+  tampilkanToast("Menghapus semua data...", "");
+
+  // Sinkron hapus semua ke spreadsheet
+  fetch(scriptURL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify({ action: "delete_all", guru: guruLogin }),
+  })
+    .then(res => {
+      if (res.ok) tampilkanToast("Semua data dihapus dari spreadsheet ✅", "sukses");
+      else throw new Error();
+    })
+    .catch(() => tampilkanToast("Data lokal dihapus, gagal sinkron spreadsheet ⚠️", "gagal"));
 }
 
 // ============================================================
