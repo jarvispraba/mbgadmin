@@ -2,7 +2,7 @@
 //  MBG TRACKER – app.js  (Versi Guru v6)
 // ============================================================
 
-const scriptURL = "https://script.google.com/macros/s/AKfycbzGPsi4JJYSjY0dmj5rEYdRKEkzwY7rgsOF2zeDf677sFYA2_ye4uhpM2561a_5M4RT/exec";
+const scriptURL = "https://script.google.com/macros/s/AKfycbyQhjW9DUiy0tfzmmGnaPBpwFiYhs54TJfGTyT9qaTqRvdP74C6LqYXDBxzBdjLpxCx/exec";
 const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1NsPx0F0eYdipUNROnK28baL0_ncKI9auOXWbLrvfZHc/edit?usp=sharing";
 
 const EMAIL_WHITELIST = [
@@ -159,26 +159,34 @@ function sanitasiNama(el) {
   }
 }
 
-// Clamp angka ke MIN–MAKS saat user mengetik (fix bug angka berubah sendiri)
+// Clamp angka ke MIN–MAKS saat user mengetik
+// FIX BUG: JANGAN tulis ulang el.value kecuali benar-benar perlu
+// Menulis ulang el.value setiap keystroke menyebabkan angka "berubah"
 function clampAngka(el) {
   const raw = el.value;
-  if (raw === "" || raw === "-") return; // biarkan kosong saat sedang mengetik
 
-  const val = parseInt(raw, 10); // radix 10 wajib — hindari parsing octal/hex
+  // Biarkan kosong atau sedang mengetik angka negatif
+  if (raw === "" || raw === "-") return;
+
+  const val = parseInt(raw, 10); // radix 10 wajib
+
+  // Hapus jika bukan angka valid atau negatif
   if (isNaN(val) || val < MIN_ANGKA) {
     el.value = "";
+    el.classList.remove("error");
     return;
   }
+
+  // Hanya clamp jika melebihi batas — JANGAN tulis ulang jika masih valid
   if (val > MAKS_ANGKA) {
-    el.value = MAKS_ANGKA;
+    el.value = String(MAKS_ANGKA);
     el.classList.add("error");
     tampilkanToast(`⚠️ Maksimal ${MAKS_ANGKA}`, "gagal");
     setTimeout(() => el.classList.remove("error"), 2000);
-    return;
+  } else {
+    el.classList.remove("error");
+    // TIDAK menulis ulang el.value — biarkan browser handle input angka
   }
-  // Tulis ulang nilai bersih — mencegah nilai "ganda" atau trailing karakter
-  el.value = val;
-  el.classList.remove("error");
 }
 
 // Tampilkan hint sisa karakter nama
@@ -233,7 +241,17 @@ function cekSelisih() {
   const wrap         = document.getElementById("peringatanSelisih");
   const pesan        = document.getElementById("pesanSelisih");
 
-  if (diambil > 0 && dikembalikan > 0 && dikembalikan < diambil) {
+  if (diambil === 0 || dikembalikan === 0) {
+    wrap.classList.add("hidden");
+    return;
+  }
+
+  if (dikembalikan > diambil) {
+    // Kelebihan — blok
+    pesan.textContent = `😅 Omprengnya nambah dari mana? Pengembalian (${dikembalikan}) melebihi pengambilan (${diambil})!`;
+    wrap.classList.remove("hidden");
+  } else if (dikembalikan < diambil) {
+    // Kurang — pesan unik
     const selisih = diambil - dikembalikan;
     const pesanUnik = [
       `😅 Waduh! Omprengnya ke mana nih? Kurang ${selisih} nih!`,
@@ -241,9 +259,10 @@ function cekSelisih() {
       `🤔 Hmm, kok kurang ${selisih} ya? Cek lagi yuk!`,
       `⚠️ Eh tunggu, kurang ${selisih} ompreng! Jangan-jangan masih di kelas?`
     ];
-    pesan.textContent = pesanUnik[selisih % pesanUnik.length]; // konsisten per nilai selisih
+    pesan.textContent = pesanUnik[selisih % pesanUnik.length];
     wrap.classList.remove("hidden");
   } else {
+    // Pas — sembunyikan peringatan
     wrap.classList.add("hidden");
   }
 }
@@ -323,6 +342,19 @@ function validasiKembali() {
   // ❌ BLOK jika ompreng dikembalikan < diambil
   const entri   = logSesi.find(i => i.kelas === kelas && i.tanggal === tanggal);
   const diambil = entri ? (entri.omprengDiambil || 0) : 0;
+
+  // ❌ BLOK jika lebih banyak dari yang diambil
+  if (diambil > 0 && jml > diambil) {
+    sorotError("omprengDikembalikan");
+    const wrap  = document.getElementById("peringatanSelisih");
+    const pesan = document.getElementById("pesanSelisih");
+    pesan.textContent = `😅 Omprengnya nambah dari mana? Pengembalian (${jml}) melebihi pengambilan (${diambil})!`;
+    wrap.classList.remove("hidden");
+    tampilkanToast(`⚠️ Pengembalian melebihi pengambilan! Data tidak dapat dikirim.`, "gagal");
+    return false;
+  }
+
+  // ❌ BLOK jika ompreng dikembalikan < diambil
   if (diambil > 0 && jml < diambil) {
     const selisih = diambil - jml;
     sorotError("omprengDikembalikan");
@@ -502,12 +534,14 @@ function renderLog() {
 }
 
 function simpanLog() {
-  localStorage.setItem("mbg_log_v6", JSON.stringify(logSesi));
+  localStorage.setItem("mbg_log_v8", JSON.stringify(logSesi));
 }
 
 function muatLog() {
-  // Coba muat dari v6, fallback ke v5 agar data lama tidak hilang
-  const saved = localStorage.getItem("mbg_log_v6") || localStorage.getItem("mbg_log_v5");
+  // Coba v8 dulu, fallback ke v6/v5 agar data lama tidak hilang
+  const saved = localStorage.getItem("mbg_log_v8")
+             || localStorage.getItem("mbg_log_v6")
+             || localStorage.getItem("mbg_log_v5");
   if (saved) {
     try { logSesi = JSON.parse(saved); } catch { logSesi = []; }
   }
