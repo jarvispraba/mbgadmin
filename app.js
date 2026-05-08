@@ -2,7 +2,7 @@
 //  MBG TRACKER – app.js  (Versi Guru v6)
 // ============================================================
 
-const scriptURL = "https://script.google.com/macros/s/AKfycbzvBrfgjbsVTSebOKUsjFx8CZzHuo40ouTH5a5BfjWEixT3ZZRwTQ3gM859NSQOS-37/exec";
+const scriptURL = "https://script.google.com/macros/s/AKfycbzGPsi4JJYSjY0dmj5rEYdRKEkzwY7rgsOF2zeDf677sFYA2_ye4uhpM2561a_5M4RT/exec";
 const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1NsPx0F0eYdipUNROnK28baL0_ncKI9auOXWbLrvfZHc/edit?usp=sharing";
 
 const EMAIL_WHITELIST = [
