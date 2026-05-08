@@ -7,7 +7,7 @@ const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1NsPx0F0eYdipUNR
 
 const EMAIL_WHITELIST = [
   "jarvispraba@gmail.com",
-  "PakT@gmail.com",
+  "pak@gmail.com",
   " ",
 ];
 
