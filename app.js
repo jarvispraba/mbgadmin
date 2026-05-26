@@ -16,6 +16,19 @@ const MAKS_NAMA  = 30;
 const MAKS_ANGKA = 40;
 const MIN_ANGKA  = 0;
 
+// ── Urutan kelas resmi sekolah (untuk sorting riwayat sesi) ──
+const CLASS_ORDER = [
+  "X RPL 1", "X RPL 2", "X RPL 3", "X RPL 4", "X RPL 5",
+  "X RPL 6", "X RPL 7", "X RPL 8",
+  "X TKJ 1", "X TKJ 2", "X TKJ 3", "X TKJ 4",
+  "X PG 1",  "X PG 2",
+  "X Internasional",
+  "XI RPL 1", "XI RPL 2", "XI RPL 3", "XI RPL 4", "XI RPL 5",
+  "XI RPL 6", "XI RPL 7", "XI RPL 8",
+  "XI TKJ 1", "XI TKJ 2", "XI TKJ 3", "XI TKJ 4",
+  "XI PG 1",  "XI PG 2",
+];
+
 let guruLogin = null;
 let logSesi   = [];
 let modeAktif = null; // 'ambil' | 'kembali'
@@ -492,7 +505,17 @@ function renderLog() {
     return;
   }
 
-  wrap.innerHTML = logSesi.map(item => {
+  // Sort berdasarkan urutan kelas resmi, bukan waktu input
+  const sorted = [...logSesi].sort((a, b) => {
+    const idxA = CLASS_ORDER.indexOf(a.kelas);
+    const idxB = CLASS_ORDER.indexOf(b.kelas);
+    // Kelas tidak dikenal → tampil di paling bawah
+    const posA = idxA === -1 ? CLASS_ORDER.length : idxA;
+    const posB = idxB === -1 ? CLASS_ORDER.length : idxB;
+    return posA - posB;
+  });
+
+  wrap.innerHTML = sorted.map(item => {
     const statusClass = item.status === "Selesai"      ? "label-selesai"
                       : item.status === "Diambil"      ? "label-ambil"
                       : item.status === "Dikembalikan" ? "label-kembali"
